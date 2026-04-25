@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - '*'  # unconditionally run for this branch
     tags:
       - 'v*'
   # Not on `labeled`/`unlabeled`: GitHub cannot filter them by label name, and
