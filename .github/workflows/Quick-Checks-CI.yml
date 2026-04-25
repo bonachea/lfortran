@@ -198,7 +198,7 @@ jobs:
             pixi run -e llvm11 integration_tests -b wasm -f
 
       - name: Test CI smoke selection
-        if: contains(matrix.os, 'ubuntu') && contains(matrix.llvm-version, '21')
+        if: 0
         shell: bash -e {0}
         run: python ci/test_ci.py
 

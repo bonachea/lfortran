@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - '*'
     tags:
       - 'v*'
   # Exhaustive never runs on PRs. For a rare, explicitly requested check of a
