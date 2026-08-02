@@ -74,6 +74,10 @@ git config user.email "nobody@nowhere.com"
 git config user.name  "Nobody"
 git cherry-pick 736130c4af77b4ab33e4341e6dcd32ab4c8b7f4a
 
+# Cherry-pick recent fixes to assertion reporting for LFortran
+git cherry-pick 34652e1e215ab08eabac2642b6db82c9beac944f
+git cherry-pick 4ccb611328908c9fdee05d0bab587baa4ac679db
+
 # Toolchain setup
 
 export FC=lfortran
