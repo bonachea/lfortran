@@ -151,15 +151,11 @@ time_section "🧪 Testing caffeine" '
     fi
   done
 
-  # inject ISO_Fortran_binding.h into the C include path
-  export CPPFLAGS="-I$(lfortran --print-c-include-dir)"
-
   # checkout a snapshot more recent than the current release
-  git checkout 341a507bfd61c464fe6db4b8185520e6461e5a9b
+  git checkout 65ee8e41a6b5c2831b557c983ea10c147e9a869b
 
   # Now build and test caffeine with LFortran
-  export GASNET_CONFIGURE_ARGS="--enable-rpath --enable-debug" 
-  ./install.sh --yes --prefix=$PWD/inst --verbose
+  ./install.sh --yes --prefix=$PWD/inst --verbose --enable-rpath --enable-debug
 
   # Execute Caffeine unit tests
   export CAF_IMAGES=4

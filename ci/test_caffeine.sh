@@ -66,21 +66,8 @@ fi # LINUX
 git clone -b main https://github.com/BerkeleyLab/caffeine.git
 cd caffeine
 
-# Release 0.8.0
-git checkout 9a4a818d9617bc88890a9fdc9fd6e66959c7fad0
-
-# Cherry-pick a recent fix to -DCAF_IMPORT_TEAM_CONSTANTS
-git config user.email "nobody@nowhere.com"
-git config user.name  "Nobody"
-git cherry-pick 736130c4af77b4ab33e4341e6dcd32ab4c8b7f4a
-
-# Cherry-pick recent fixes to assertion reporting for LFortran (Caffeine PR #353)
-git cherry-pick 4ccb611328908c9fdee05d0bab587baa4ac679db
-# Sadly git-merge lacks the ability to ignore irrelevant changes
-# on adjacenet lines, so this critical one-line commit doesn't apply cleanly:
-#git cherry-pick 34652e1e215ab08eabac2642b6db82c9beac944f
-# Apply it manually instead:
-sed -i.bak '\|assert\.git|s/3\.1\.0/3.1.2/' manifest/fpm.toml.template
+# Release 0.8.x
+git checkout 65ee8e41a6b5c2831b557c983ea10c147e9a869b
 
 # Toolchain setup
 
@@ -94,19 +81,12 @@ echo "CXX=${CXX}"
 which clang
 clang --version
 
-# inject ISO_Fortran_binding.h into the C include path
-export CPPFLAGS="-I$(lfortran --print-c-include-dir)"
-
 # instruct Caffeine to import the iso_fortran_env constants from LFortran
-CPPFLAGS+=" -DCAF_IMPORT_CONSTANTS"
-
-# GASNet debug options
-
-export GASNET_CONFIGURE_ARGS="--enable-rpath --enable-debug"
+export FFLAGS="-DCAF_IMPORT_CONSTANTS"
 
 # Build caffeine
 
-./install.sh --yes --prefix=$PWD/inst --verbose
+./install.sh --yes --prefix=$PWD/inst --verbose --enable-rpath --enable-debug
 
 # Output Caffeine configuration information
 
@@ -208,12 +188,11 @@ gasnetrun_smp -n "$num_images" ./"${base}_lf.out"
 # ----------------------------------------
 
 if [ $LINUX ] ; then
-  skip_opencoarrays=false
-  for skip in $opencoarrays_unsupported; do
-      if [ "$base" = "$skip" ]; then
-          skip_opencoarrays=true
-      fi
-  done
+  if [[ " $opencoarrays_unsupported " =~ " $base " ]] ; then
+    skip_opencoarrays=true
+  else
+    skip_opencoarrays=false
+  fi
 else # macOS
   skip_opencoarrays=true
 fi
