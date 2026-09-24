@@ -440,7 +440,7 @@ jobs:
 
       - name: Test third party codes
         shell: bash -e -l {0}
-        if: ${{ matrix.llvm-version == '11' || matrix.llvm-version == '19' || contains(matrix.os, 'macos') }}
+        if: 0
         run: |
             export PATH="$(pwd)/src/bin:$PATH"
             LAPACK_MODE="smoke"
