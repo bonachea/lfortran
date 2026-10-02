@@ -793,9 +793,11 @@ jobs:
 
   build-and-push-image:
     runs-on: ubuntu-latest
-    # Run on push to main, or only when the specific label is modified on a PR
+    # Run only on push to the primary repo (not forks)
     needs: gate
-    if: needs.gate.outputs.run == 'true'
+    if: ${{ needs.gate.outputs.run == 'true' && 
+            github.repository == 'lfortran/lfortran'
+            }}
     permissions:
       contents: read
       packages: write
