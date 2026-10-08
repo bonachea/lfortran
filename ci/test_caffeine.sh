@@ -14,10 +14,10 @@ export PATH="$PWD/src/bin:$PATH"
 which lfortran
 lfortran --version
 
-# FPM disabled to speed up the build
-#micromamba install -c conda-forge fpm=0.12.0
-#which fpm
-#fpm --version
+# FPM needed for Caffeine unit tests
+micromamba install -c conda-forge fpm=0.12.0
+which fpm
+fpm --version
 
 if [ $LINUX ] ; then
 
@@ -83,11 +83,21 @@ clang --version
 
 # Build caffeine
 
-./install.sh --yes --prefix=$PWD/inst --verbose --enable-rpath --enable-debug --disable-fpm
+./install.sh --yes --prefix=$PWD/inst --verbose --enable-rpath --enable-debug
+
+(set +x 
+ echo "##[endgroup]"
+ echo "##[group] Caffeine unit tests"
+)
 
 # Output Caffeine configuration information
 
 ./run-fpm.sh info
+
+# Run Caffeine unit tests
+# Failures here likely indicate regressions compiling the Fortran code in Caffeine
+
+./run-fpm.sh test --verbose
 
 cd ..
 
