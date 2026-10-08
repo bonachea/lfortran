@@ -15,7 +15,7 @@ which lfortran
 lfortran --version
 
 # FPM needed for Caffeine unit tests
-micromamba install -c conda-forge fpm=0.12.0
+time micromamba install -c conda-forge fpm=0.12.0
 which fpm
 fpm --version
 
@@ -26,7 +26,7 @@ if [ $LINUX ] ; then
  echo "##[group] Install OpenMPI"
 )
 
-micromamba install -y -c conda-forge openmpi
+time micromamba install -y -c conda-forge openmpi
 export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe
 export OMPI_MCA_rmaps_base_oversubscribe=1
 
@@ -35,6 +35,7 @@ export OMPI_MCA_rmaps_base_oversubscribe=1
  echo "##[group] Install OpenCoarrays"
 )
 
+time (
 git clone https://github.com/sourceryinstitute/OpenCoarrays.git
 cd OpenCoarrays
 
@@ -43,10 +44,9 @@ cmake -B build \
 
 cmake --build build -j2
 cmake --install build
+)
 
 export PATH="$HOME/opencoarrays/bin:$PATH"
-
-cd ..
 
 which caf
 caf --version
@@ -83,7 +83,7 @@ clang --version
 
 # Build caffeine
 
-./install.sh --yes --prefix=$PWD/inst --verbose --enable-rpath --enable-debug
+time ./install.sh --yes --prefix=$PWD/inst --verbose --enable-rpath --enable-debug
 
 (set +x 
  echo "##[endgroup]"
@@ -97,7 +97,7 @@ clang --version
 # Run Caffeine unit tests
 # Failures here likely indicate regressions compiling the Fortran code in Caffeine
 
-./run-fpm.sh test --verbose
+time ./run-fpm.sh test --verbose
 
 cd ..
 
@@ -114,7 +114,7 @@ export PATH="$PWD/caffeine/inst/bin:$PATH"
 # Ensure Caffeine we just built can pass its own end-to-end smoke test
 # Note this activates LFortran's coarray pass, so failures here can indicate an LFortran regression
 
-make -C caffeine/app prif
+time make -C caffeine/app prif
 
 
 (set +x 
@@ -173,7 +173,7 @@ fi
 opencoarrays_unsupported="coarrays_06 coarrays_11 coarrays_13 coarrays_21 coarrays_27 coarrays_31 coarrays_32 coarrays_34 coarrays_39 coarrays_45 coarrays_46 coarrays_47 coarrays_49"
 
 # loop over $tests
-while IFS=';' read -r -u 3 testfile num_images extra_args extrafiles || [[ -n "$testfile" ]]; do
+time while IFS=';' read -r -u 3 testfile num_images extra_args extrafiles || [[ -n "$testfile" ]]; do
 
 if [ -z "$num_images" ]; then
     num_images=$CAF_IMAGES
@@ -193,7 +193,7 @@ base=$(basename "$testfile" .f90)
 # Compile with LFortran + caffeine
 # ----------------------------------------
 
-lfortran "$@" $extrafiles $testfile \
+time lfortran "$@" $extrafiles $testfile \
     $extra_args \
     -o "${base}_lf.out" \
     -L$PWD/caffeine/inst/lib \
@@ -204,7 +204,8 @@ lfortran "$@" $extrafiles $testfile \
 # Run LFortran executable
 # ----------------------------------------
 
-gasnetrun_smp -n "$num_images" ./"${base}_lf.out"
+time gasnetrun_smp -n "$num_images" ./"${base}_lf.out"
+rm -f "${base}_lf.out"
 
 # ----------------------------------------
 # Cross-check with gfortran/OpenCoarrays, unless OpenCoarrays lacks support
@@ -223,14 +224,14 @@ fi
 if [ "$skip_opencoarrays" = true ]; then
     echo "Skipping OpenCoarrays cross-check for $testfile"
 else
+  time (
     caf $extrafiles $testfile -o "${base}_gf.out"
     cafrun -np "$num_images" ./"${base}_gf.out" 2>&1 \
       | sed '/Error: OSC UCX component priority/{N;/\n[[:space:]]*$/d}' # filter persistent non-fatal errors
     test ${PIPESTATUS[0]} = 0
     rm -f "${base}_gf.out"
+  )
 fi
-
-rm -f "${base}_lf.out"
 
 echo "PASS: $testfile"
 
