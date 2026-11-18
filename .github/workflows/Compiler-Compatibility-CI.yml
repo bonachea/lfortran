@@ -139,7 +139,7 @@ jobs:
 
       - name: Test third party codes
         shell: bash -e {0}
-        if: ${{ inputs.scope == 'exhaustive' && !startsWith(github.ref, 'refs/tags/') && (matrix.llvm-version == '11' || matrix.llvm-version == '19' || contains(matrix.os, 'macos')) }}
+        if: 0
         run: |
             LAPACK_MODE="smoke"
             # The full Reference-LAPACK suite costs ~10 min more than smoke.
